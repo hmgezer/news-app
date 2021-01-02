@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage>
   ScrollController _scrollController;
   TabController _tabController;
   int currentIndex = 0;
+  bool loading = true;
   Map<String, List> _newsData = Map<String, List>();
   @override
   void initState() {
@@ -55,95 +56,172 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    return NestedScrollView(
-      controller: _scrollController,
-      headerSliverBuilder: (context, value) {
-        return [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(25, 10, 25, 25),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Top News Updates",
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontFamily: "Times",
-                    fontSize: 34,
-                    fontWeight: FontWeight.w700,
+    setState(() {
+      loading = Provider.of<NewsService>(context).loading;
+      Provider.of<NewsService>(context).getNewsData('ses');
+    });
+    return Column(
+      children: [
+        Container(
+          height: MediaQuery.of(context).size.height * .1,
+          child: NestedScrollView(
+            controller: _scrollController,
+            headerSliverBuilder: (context, value) {
+              return [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(25, 10, 25, 25),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Top News Updates",
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontFamily: "Times",
+                          fontSize: 34,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Container(
+                    padding: EdgeInsets.only(left: 25),
+                    alignment: Alignment.centerLeft,
+                    child: TabBar(
+                        labelPadding: EdgeInsets.only(right: 15),
+                        indicatorSize: TabBarIndicatorSize.label,
+                        controller: _tabController,
+                        isScrollable: true,
+                        indicator: UnderlineTabIndicator(),
+                        labelColor: Colors.black,
+                        labelStyle: TextStyle(
+                            fontFamily: "Avenir",
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold),
+                        unselectedLabelColor: Colors.black45,
+                        unselectedLabelStyle: TextStyle(
+                            fontFamily: "Avenir",
+                            fontSize: 18,
+                            fontWeight: FontWeight.normal),
+                        tabs: List.generate(categories.length,
+                            (index) => Text(categories[index].name))),
+                  ),
+                ),
+              ];
+            },
+            body: Container(
+              child: TabBarView(
+                  controller: _tabController,
+                  children: List.generate(
+                    categories.length,
+                    (index) {
+                      var key = categories[index]
+                          .imageUrl
+                          .toString()
+                          .split("/")[3]
+                          .split(".")[0]
+                          .replaceAll("_", "-");
+                      return ListView.builder(
+                        padding: EdgeInsets.symmetric(horizontal: 25),
+                        itemBuilder: (context, i) {
+                          String time = _newsData[key][i]['pubDate']['__cdata'];
+                          DateTime timeIST = DateTime.parse(time.split(" ")[3] +
+                              "-" +
+                              getMonthNumberFromName(
+                                  month: time.split(" ")[2]) +
+                              "-" +
+                              time.split(" ")[1] +
+                              " " +
+                              time.split(" ")[4]);
+                          timeIST = timeIST
+                              .add(Duration(hours: 5))
+                              .add(Duration(minutes: 30));
+                          return HomePageCard(
+                            title: _newsData[key][i]['title']['__cdata'],
+                            subtitle: _newsData[key][i]['description']
+                                ['__cdata'],
+                            time: timeIST.day.toString() +
+                                " " +
+                                getMonthNumberInWords(month: timeIST.month) +
+                                " " +
+                                timeIST
+                                    .toString()
+                                    .split(" ")[1]
+                                    .substring(0, 5),
+                            imageUrl: _newsData[key][i]['media\$content']
+                                ['url'],
+                          );
+                        },
+                        itemCount: _newsData[key]?.length ?? 0,
+                      );
+                    },
+                  )),
+            ),
+          ),
+        ),
+        loading
+            ? CircularProgressIndicator()
+            : Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 18.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: List.generate(
+                          Provider.of<NewsService>(context, listen: false)
+                              .newsUs
+                              .length,
+                          (index) => Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Container(
+                                  height:
+                                      MediaQuery.of(context).size.height * .25,
+                                  width: MediaQuery.of(context).size.width,
+                                  child: Stack(
+                                    children: [
+                                      Image.network(
+                                        Provider.of<NewsService>(context,
+                                                listen: false)
+                                            .newsUs[index]
+                                            .urlToImage,
+                                        fit: BoxFit.fitWidth,
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                      ),
+                                      Positioned(
+                                          bottom: 0,
+                                          child: Container(
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                .08,
+                                            color: Colors.black87,
+                                            child: Center(
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: Text(
+                                                  Provider.of<NewsService>(
+                                                          context,
+                                                          listen: false)
+                                                      .newsUs[index]
+                                                      .title,
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                              ),
+                                            ),
+                                          ))
+                                    ],
+                                  ),
+                                ),
+                              )),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Container(
-              padding: EdgeInsets.only(left: 25),
-              alignment: Alignment.centerLeft,
-              child: TabBar(
-                  labelPadding: EdgeInsets.only(right: 15),
-                  indicatorSize: TabBarIndicatorSize.label,
-                  controller: _tabController,
-                  isScrollable: true,
-                  indicator: UnderlineTabIndicator(),
-                  labelColor: Colors.black,
-                  labelStyle: TextStyle(
-                      fontFamily: "Avenir",
-                      fontSize: 19,
-                      fontWeight: FontWeight.bold),
-                  unselectedLabelColor: Colors.black45,
-                  unselectedLabelStyle: TextStyle(
-                      fontFamily: "Avenir",
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal),
-                  tabs: List.generate(categories.length,
-                      (index) => Text(categories[index].name))),
-            ),
-          ),
-        ];
-      },
-      body: Container(
-        child: TabBarView(
-            controller: _tabController,
-            children: List.generate(
-              categories.length,
-              (index) {
-                var key = categories[index]
-                    .imageUrl
-                    .toString()
-                    .split("/")[3]
-                    .split(".")[0]
-                    .replaceAll("_", "-");
-                return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 25),
-                  itemBuilder: (context, i) {
-                    String time = _newsData[key][i]['pubDate']['__cdata'];
-                    DateTime timeIST = DateTime.parse(time.split(" ")[3] +
-                        "-" +
-                        getMonthNumberFromName(month: time.split(" ")[2]) +
-                        "-" +
-                        time.split(" ")[1] +
-                        " " +
-                        time.split(" ")[4]);
-                    timeIST = timeIST
-                        .add(Duration(hours: 5))
-                        .add(Duration(minutes: 30));
-                    return HomePageCard(
-                      title: _newsData[key][i]['title']['__cdata'],
-                      subtitle: _newsData[key][i]['description']['__cdata'],
-                      time: timeIST.day.toString() +
-                          " " +
-                          getMonthNumberInWords(month: timeIST.month) +
-                          " " +
-                          timeIST.toString().split(" ")[1].substring(0, 5),
-                      imageUrl: _newsData[key][i]['media\$content']['url'],
-                    );
-                  },
-                  itemCount: _newsData[key]?.length ?? 0,
-                );
-              },
-            )),
-      ),
+      ],
     );
   }
 }
