@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:newsApp/services/news_service.dart';
-import 'package:provider/provider.dart';
+import 'package:newsApp/screens/splash.dart';
 
 import 'home.dart';
 
@@ -30,7 +29,10 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Home(),
+      home: Splash(),
+      routes: {
+        '/home': (context) => Home(),
+      },
     );
   }
 }

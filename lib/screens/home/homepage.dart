@@ -2,6 +2,7 @@ import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:newsApp/screens/home/news_detail.dart';
 import 'package:newsApp/services/news_service.dart';
 import 'package:provider/provider.dart';
 import '../../model/categories_model.dart';
@@ -174,46 +175,59 @@ class _HomePageState extends State<HomePage>
                               .length,
                           (index) => Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Container(
-                                  height:
-                                      MediaQuery.of(context).size.height * .25,
-                                  width: MediaQuery.of(context).size.width,
-                                  child: Stack(
-                                    children: [
-                                      Image.network(
-                                        Provider.of<NewsService>(context,
-                                                listen: false)
-                                            .newsUs[index]
-                                            .urlToImage,
-                                        fit: BoxFit.fitWidth,
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                      ),
-                                      Positioned(
-                                          bottom: 0,
-                                          child: Container(
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                .08,
-                                            color: Colors.black87,
-                                            child: Center(
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Text(
-                                                  Provider.of<NewsService>(
-                                                          context,
-                                                          listen: false)
-                                                      .newsUs[index]
-                                                      .title,
-                                                  style: TextStyle(
-                                                      color: Colors.white),
+                                child: InkWell(
+                                  onTap: () {
+                                    News news = Provider.of<NewsService>(
+                                            context,
+                                            listen: false)
+                                        .newsUs[index];
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                NewsDetailScreen(news)));
+                                  },
+                                  child: Container(
+                                    height: MediaQuery.of(context).size.height *
+                                        .25,
+                                    width: MediaQuery.of(context).size.width,
+                                    child: Stack(
+                                      children: [
+                                        Image.network(
+                                          Provider.of<NewsService>(context,
+                                                  listen: false)
+                                              .newsUs[index]
+                                              .urlToImage,
+                                          fit: BoxFit.fitWidth,
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                        ),
+                                        Positioned(
+                                            bottom: 0,
+                                            child: Container(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  .08,
+                                              color: Colors.black87,
+                                              child: Center(
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Text(
+                                                    Provider.of<NewsService>(
+                                                            context,
+                                                            listen: false)
+                                                        .newsUs[index]
+                                                        .title,
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          ))
-                                    ],
+                                            ))
+                                      ],
+                                    ),
                                   ),
                                 ),
                               )),
